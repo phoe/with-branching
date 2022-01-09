@@ -2,7 +2,7 @@
 
 This is an implementation of compile-time branching in portable Common Lisp.
 
-The main use case is to avoid closing over variables for performance reasons.
+The main use case is to avoid closing over variables for performance.
 
 ## Manual
 
@@ -111,11 +111,17 @@ The total number of combinations for `n` boolean flags is `2^n`, making it hard 
 
 This code gives us the clarity of runtime-checked version and the performance of a compile-time-checked version. A total of eight versions of the body (and therefore, eight possible `LAMBDA` forms) are generated. At runtime, only one of them is selected, based on the boolean values of the three flags we provided.
 
+Three conditional operators are provided - `COMPILE-TIME-IF`, `COMPILE-TIME-WHEN`, and `COMPILE-TIME-UNLESS`, mimicking the syntax of, respectively, `IF`, `WHEN`, and `UNLESS`.
+
+## Bypassing the compile-time branching
+
 It is possible to use the variable `*COMPILE-TIME-BRANCH-BYPASS*` for bypassing compile-time branching; this is useful e.g. when trying to read the macroexpansions or when debugging. If that variable is set to true, the behavior of the macroexpander is modified:
 * `WITH-COMPILE-TIME-BRANCHING` expands into a `PROGN` form,
 * `COMPILE-TIME-IF` expands into an `IF` form,
 * `COMPILE-TIME-WHEN` expands into a `WHEN` form,
 * `COMPILE-TIME-UNLESS` expands into an `UNLESS` form.
+
+## Exceptional situations
 
 Trying to use `COMPILE-TIME-IF`, `COMPILE-TIME-WHEN`, or `COMPILE-TIME-UNLESS` outside the lexical environment established by `WITH-COMPILE-TIME-BRANCHES` will signal an error.
 
