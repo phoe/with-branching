@@ -1,6 +1,6 @@
-# WITH-COMPILE-TIME-BRANCHING
+# WITH-MACROEXPAND-TIME-BRANCHING
 
-This is an implementation of compile-time branching in portable Common Lisp.
+This is an implementation of macroexpand-time branching in portable Common Lisp.
 
 The main use case is to avoid closing over variables for performance.
 
@@ -77,7 +77,7 @@ Still, with more flags than one, this style of writing code is likely to become 
                  (if humongous-p 3000 0))))
 ```
 
-But it would look like this for the compile-time version:
+But it would look like this for the macroexpand-time version:
 
 ```lisp
 (defun make-adder (x &key huge-p enormous-p humongous-p)
@@ -98,34 +98,34 @@ But it would look like this for the compile-time version:
               (lambda (y) (+ x y 0 0 0))))))
 ```
 
-The total number of combinations for `n` boolean flags is `2^n`, making it hard to write and maintain code with so many branches. This is where `WITH-COMPILE-TIME-BRANCHING` comes into play. Using it, we can write our code in a way that looks similar to the runtime-check version:
+The total number of combinations for `n` boolean flags is `2^n`, making it hard to write and maintain code with so many branches. This is where `WITH-MACROEXPAND-TIME-BRANCHING` comes into play. Using it, we can write our code in a way that looks similar to the runtime-check version:
 
 ```lisp
 (defun make-adder (x &key huge-p enormous-p humongous-p)
-  (with-compile-time-branching (huge-p enormous-p humongous-p)
+  (with-macroexpand-time-branching (huge-p enormous-p humongous-p)
     (lambda (y) (+ x y
-                   (compile-time-if huge-p 1000 0)
-                   (compile-time-if enormous-p 2000 0)
-                   (compile-time-if humongous-p 3000 0)))))
+                   (macroexpand-time-if huge-p 1000 0)
+                   (macroexpand-time-if enormous-p 2000 0)
+                   (macroexpand-time-if humongous-p 3000 0)))))
 ```
 
-This code gives us the clarity of runtime-checked version and the performance of a compile-time-checked version. A total of eight versions of the body (and therefore, eight possible `LAMBDA` forms) are generated. At runtime, only one of them is selected, based on the boolean values of the three flags we provided.
+This code gives us the clarity of runtime-checked version and the performance of a macroexpand-time-checked version. A total of eight versions of the body (and therefore, eight possible `LAMBDA` forms) are generated. At runtime, only one of them is selected, based on the boolean values of the three flags we provided.
 
-Three conditional operators are provided - `COMPILE-TIME-IF`, `COMPILE-TIME-WHEN`, and `COMPILE-TIME-UNLESS`, mimicking the syntax of, respectively, `IF`, `WHEN`, and `UNLESS`.
+Three conditional operators are provided - `MACROEXPAND-TIME-IF`, `MACROEXPAND-TIME-WHEN`, and `MACROEXPAND-TIME-UNLESS`, mimicking the syntax of, respectively, `IF`, `WHEN`, and `UNLESS`.
 
-## Bypassing the compile-time branching
+## Bypassing the macroexpand-time branching
 
-It is possible to use the variable `*COMPILE-TIME-BRANCH-BYPASS*` for bypassing compile-time branching; this is useful e.g. when trying to read the macroexpansions or when debugging. If that variable is set to true, the behavior of the macroexpander is modified:
-* `WITH-COMPILE-TIME-BRANCHING` expands into a `PROGN` form,
-* `COMPILE-TIME-IF` expands into an `IF` form,
-* `COMPILE-TIME-WHEN` expands into a `WHEN` form,
-* `COMPILE-TIME-UNLESS` expands into an `UNLESS` form.
+It is possible to use the variable `*MACROEXPAND-TIME-BRANCH-BYPASS*` for bypassing macroexpand-time branching; this is useful e.g. when trying to read the macroexpansions or when debugging. If that variable is set to true, the behavior of the macroexpander is modified:
+* `WITH-MACROEXPAND-TIME-BRANCHING` expands into a `PROGN` form,
+* `MACROEXPAND-TIME-IF` expands into an `IF` form,
+* `MACROEXPAND-TIME-WHEN` expands into a `WHEN` form,
+* `MACROEXPAND-TIME-UNLESS` expands into an `UNLESS` form.
 
 ## Exceptional situations
 
-Trying to use `COMPILE-TIME-IF`, `COMPILE-TIME-WHEN`, or `COMPILE-TIME-UNLESS` outside the lexical environment established by `WITH-COMPILE-TIME-BRANCHES` will signal a `PROGRAM-ERROR`.
+Trying to use `MACROEXPAND-TIME-IF`, `MACROEXPAND-TIME-WHEN`, or `MACROEXPAND-TIME-UNLESS` outside the lexical environment established by `WITH-MACROEXPAND-TIME-BRANCHES` will signal a `PROGRAM-ERROR`.
 
-Trying to use a branch name `COMPILE-TIME-IF`, `COMPILE-TIME-WHEN`, or `COMPILE-TIME-UNLESS` that wasn't declared in `WITH-COMPILE-TIME-BRANCHES` will signal a `PROGRAM-ERROR`.
+Trying to use a branch name `MACROEXPAND-TIME-IF`, `MACROEXPAND-TIME-WHEN`, or `MACROEXPAND-TIME-UNLESS` that wasn't declared in `WITH-MACROEXPAND-TIME-BRANCHES` will signal a `PROGRAM-ERROR`.
 
 ## License
 
