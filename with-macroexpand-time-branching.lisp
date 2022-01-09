@@ -123,30 +123,31 @@ following manner:
 * MACROEXPAND-TIME-WHEN -> WHEN
 * MACROEXPAND-TIME-UNLESS -> UNLESS"
  (documentation 'with-macroexpand-time-branching 'function)
- "Establishes a lexical environment in which it is possible to use macroexpand-time
-branching. Within the lexical scope of WITH-MACROEXPAND-TIME-BRANCHING, it is
-possible to use MACROEXPAND-TIME-IF, MACROEXPAND-TIME-WHEN, and MACROEXPAND-TIME-UNLESS to
-conditionalize whether some forms are included at compilation time.
+ "Establishes a lexical environment in which it is possible to use
+macroexpand-time branching. Within the lexical scope of
+WITH-MACROEXPAND-TIME-BRANCHING, it is possible to use MACROEXPAND-TIME-IF,
+MACROEXPAND-TIME-WHEN, and MACROEXPAND-TIME-UNLESS to conditionalize whether
+some forms are included at compilation time.
 \
 The first argument must be a list of symbols which name variables. This macro
 will expand into a series of conditionals"
  (documentation 'macroexpand-time-if 'function)
- "Chooses between the forms to include based on whether a macroexpand-time branch is
-true. The first argument must be a symbol naming a branch in the lexically
-enclosing WITH-MACROEXPAND-TIME-BRANCHING form.
+ "Chooses between the forms to include based on whether a macroexpand-time
+branch is true. The first argument must be a symbol naming a branch in the
+lexically enclosing WITH-MACROEXPAND-TIME-BRANCHING form.
 \
 It is an error to use this macro outside the lexical environment established by
 WITH-MACROEXPAND-TIME-BRANCHES."
  (documentation 'macroexpand-time-when 'function)
- "Includes some forms based on whether a macroexpand-time branch is true. The first
-argument must be a symbol naming a branch in the lexically enclosing
+ "Includes some forms based on whether a macroexpand-time branch is true. The
+first argument must be a symbol naming a branch in the lexically enclosing
 WITH-MACROEXPAND-TIME-BRANCHING form.
 \
 It is an error to use this macro outside the lexical environment established by
 WITH-MACROEXPAND-TIME-BRANCHES."
  (documentation 'macroexpand-time-unless 'function)
- "Includes some forms based on whether a macroexpand-time branch is false. The first
-argument must be a symbol naming a branch in the lexically enclosing
+ "Includes some forms based on whether a macroexpand-time branch is false. The
+first argument must be a symbol naming a branch in the lexically enclosing
 WITH-MACROEXPAND-TIME-BRANCHING form.
 \
 It is an error to use this macro outside the lexical environment established by
