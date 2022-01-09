@@ -5,7 +5,8 @@
 
 (defpackage #:with-compile-time-branching
   (:use #:cl)
-  (:local-nicknames (#:i #:trivial-indent))
+  (:local-nicknames (#:a #:alexandria)
+                    (#:i #:trivial-indent))
   (:export #:*compile-time-branch-bypass*
            #:with-compile-time-branching
            #:compile-time-if
@@ -54,14 +55,16 @@
         (t `(progn ,@body))))
 
 (defun compile-time-conditional-error (name)
-  `(error "~A must be used inside the lexical scope ~
-           established by WITH-COMPILE-TIME-BRANCHING."
-          ',name))
+  `(a:simple-program-error
+    "~A must be used inside the lexical scope established by ~
+     WITH-COMPILE-TIME-BRANCHING."
+    ',name))
 
 (defun compile-time-missing-branch (name)
-  `(error "The compile-time branch ~S was not defined ~
-           in any encloding WITH-COMPILE-TIME-BRANCHING form."
-          ',name))
+  `(a:simple-program-error
+    "The compile-time branch ~S was not defined in any encloding
+     WITH-COMPILE-TIME-BRANCHING form."
+    ',name))
 
 (defmacro compile-time-if (branch then &optional else &environment env)
   (cond (*compile-time-branch-bypass*

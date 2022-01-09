@@ -101,7 +101,7 @@
              (multiple-value-bind (value error)
                  (ignore-errors (funcall fn))
                (check-type value null)
-               (check-type error error))))
+               (check-type error program-error))))
       (test #'test-1)
       (test #'test-2)
       (test #'test-3))))
@@ -115,7 +115,7 @@
       (multiple-value-bind (value error)
           (ignore-errors (funcall #'test))
         (check-type value null)
-        (check-type error error)))))
+        (check-type error program-error)))))
 
 (defun test ()
   (test-values)
