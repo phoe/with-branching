@@ -6,7 +6,7 @@
   :license  "MIT"
   :version "0.0.1"
   :serial t
-  :depends-on (#:trivial-indent)
+  :depends-on (#:alexandria #:trivial-indent)
   :components ((:file "with-compile-time-branching"))
   :in-order-to ((test-op (load-op #:with-compile-time-branching/test)))
   :perform
