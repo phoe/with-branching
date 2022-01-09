@@ -53,7 +53,9 @@
          (print "Z is false!"))))
 
 (defparameter *expansion-after*
-  `(symbol-macrolet ((w::%in-branching% t) (w::%true-branches% nil))
+  `(symbol-macrolet ((w::%in-branching% t)
+                     (w::%all-branches% (x y z))
+                     (w::%true-branches% nil))
      (if x
          (symbol-macrolet ((w::%true-branches% (x)))
            (if y
@@ -89,7 +91,35 @@
          (actual (a:macroexpand-all form)))
     (assert (equal expected actual))))
 
+(defun test-missing-lexical-environment ()
+  (let ((x 42))
+    (declare (ignorable x))
+    (flet ((test-1 () (w:compile-time-if x :foo :bar))
+           (test-2 () (w:compile-time-when x :foo))
+           (test-3 () (w:compile-time-unless x :foo))
+           (test (fn)
+             (multiple-value-bind (value error)
+                 (ignore-errors (funcall fn))
+               (check-type value null)
+               (check-type error error))))
+      (test #'test-1)
+      (test #'test-2)
+      (test #'test-3))))
+
+(defun test-missing-branch ()
+  (let ((x 42) (y 24))
+    (declare (ignorable x y))
+    (flet ((test ()
+             (w:with-compile-time-branching (x)
+               (w:compile-time-if y 42))))
+      (multiple-value-bind (value error)
+          (ignore-errors (funcall #'test))
+        (check-type value null)
+        (check-type error error)))))
+
 (defun test ()
   (test-values)
   (test-expansion)
+  (test-missing-lexical-environment)
+  (test-missing-branch)
   t)

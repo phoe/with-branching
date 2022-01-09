@@ -117,6 +117,10 @@ It is possible to use the variable `*COMPILE-TIME-BRANCH-BYPASS*` for bypassing 
 * `COMPILE-TIME-WHEN` expands into a `WHEN` form,
 * `COMPILE-TIME-UNLESS` expands into an `UNLESS` form.
 
+Trying to use `COMPILE-TIME-IF`, `COMPILE-TIME-WHEN`, or `COMPILE-TIME-UNLESS` outside the lexical environment established by `WITH-COMPILE-TIME-BRANCHES` will signal an error.
+
+Trying to use a branch name `COMPILE-TIME-IF`, `COMPILE-TIME-WHEN`, or `COMPILE-TIME-UNLESS` that wasn't declared in `WITH-COMPILE-TIME-BRANCHES` will signal an error.
+
 ## License
 
 MIT

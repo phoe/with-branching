@@ -25,12 +25,17 @@
 
 (define-symbol-macro %in-branching% nil)
 
-(defmacro with-compile-time-branching ((&rest branches) &body body)
+(define-symbol-macro %all-branches% ())
+
+(defmacro with-compile-time-branching ((&rest branches) &body body
+                                       &environment env)
   (cond (*compile-time-branch-bypass*
          `(progn ,@body))
-        (t `(symbol-macrolet ((%in-branching% t)
-                              (%true-branches% ()))
-              (%with-compile-time-branching ,branches ,@body)))))
+        (t (let ((all-branches (macroexpand-1 '%all-branches% env)))
+             `(symbol-macrolet ((%in-branching% t)
+                                (%all-branches% (,@branches ,@all-branches))
+                                (%true-branches% ()))
+                (%with-compile-time-branching ,branches ,@body))))))
 
 (defmacro %with-compile-time-branching ((&rest branches) &body body
                                         &environment env)
@@ -53,9 +58,16 @@
            established by WITH-COMPILE-TIME-BRANCHING."
           ',name))
 
+(defun compile-time-missing-branch (name)
+  `(error "The compile-time branch ~S was not defined ~
+           in any encloding WITH-COMPILE-TIME-BRANCHING form."
+          ',name))
+
 (defmacro compile-time-if (branch then &optional else &environment env)
   (cond (*compile-time-branch-bypass*
          `(if ,branch ,then ,else))
+        ((not (member branch (macroexpand-1 '%all-branches% env)))
+         (compile-time-missing-branch branch))
         ((not (macroexpand-1 '%in-branching% env))
          (compile-time-conditional-error 'compile-time-if))
         ((member branch (macroexpand-1 '%true-branches% env))
@@ -65,6 +77,8 @@
 (defmacro compile-time-when (branch &body body &environment env)
   (cond (*compile-time-branch-bypass*
          `(when ,branch ,@body))
+        ((not (member branch (macroexpand-1 '%all-branches% env)))
+         (compile-time-missing-branch branch))
         ((not (macroexpand-1 '%in-branching% env))
          (compile-time-conditional-error 'compile-time-when))
         ((not (member branch (macroexpand-1 '%true-branches% env)))
@@ -78,6 +92,8 @@
 (defmacro compile-time-unless (branch &body body &environment env)
   (cond (*compile-time-branch-bypass*
          `(unless ,branch ,@body))
+        ((not (member branch (macroexpand-1 '%all-branches% env)))
+         (compile-time-missing-branch branch))
         ((not (macroexpand-1 '%in-branching% env))
          (compile-time-conditional-error 'compile-time-unless))
         ((member branch (macroexpand-1 '%true-branches% env))
