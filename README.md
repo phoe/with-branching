@@ -1,4 +1,4 @@
-# WITH-MACROEXPAND-TIME-BRANCHING
+# WITH-BRANCHING
 
 This is an implementation of macroexpand-time branching in portable Common Lisp.
 
@@ -98,34 +98,34 @@ But it would look like this for the macroexpand-time version:
               (lambda (y) (+ x y 0 0 0))))))
 ```
 
-The total number of combinations for `n` boolean flags is `2^n`, making it hard to write and maintain code with so many branches. This is where `WITH-MACROEXPAND-TIME-BRANCHING` comes into play. Using it, we can write our code in a way that looks similar to the runtime-check version:
+The total number of combinations for `n` boolean flags is `2^n`, making it hard to write and maintain code with so many branches. This is where `WITH-BRANCHING` comes into play. Using it, we can write our code in a way that looks similar to the runtime-check version:
 
 ```lisp
 (defun make-adder (x &key huge-p enormous-p humongous-p)
-  (with-macroexpand-time-branching (huge-p enormous-p humongous-p)
+  (with-branching (huge-p enormous-p humongous-p)
     (lambda (y) (+ x y
-                   (macroexpand-time-if huge-p 1000 0)
-                   (macroexpand-time-if enormous-p 2000 0)
-                   (macroexpand-time-if humongous-p 3000 0)))))
+                   (branch-if huge-p 1000 0)
+                   (branch-if enormous-p 2000 0)
+                   (branch-if humongous-p 3000 0)))))
 ```
 
-This code gives us the clarity of runtime-checked version and the performance of a macroexpand-time-checked version. A total of eight versions of the body (and therefore, eight possible `LAMBDA` forms) are generated. At runtime, only one of them is selected, based on the boolean values of the three flags we provided.
+This code gives us the clarity of runtime-checked version and the performance of a checked version. A total of eight versions of the body (and therefore, eight possible `LAMBDA` forms) are generated. At runtime, only one of them is selected, based on the boolean values of the three flags we provided.
 
-Three conditional operators are provided - `MACROEXPAND-TIME-IF`, `MACROEXPAND-TIME-WHEN`, and `MACROEXPAND-TIME-UNLESS`, mimicking the syntax of, respectively, `IF`, `WHEN`, and `UNLESS`.
+Three conditional operators are provided - `IF`, `WHEN`, and `UNLESS`, mimicking the syntax of, respectively, `BRANCH-IF`, `BRANCH-WHEN`, and `BRANCH-UNLESS`.
 
 ## Bypassing the macroexpand-time branching
 
-It is possible to use the variable `*MACROEXPAND-TIME-BRANCH-BYPASS*` for bypassing macroexpand-time branching; this is useful e.g. when trying to read the macroexpansions or when debugging. If that variable is set to true, the behavior of the macroexpander is modified:
-* `WITH-MACROEXPAND-TIME-BRANCHING` expands into a `PROGN` form,
-* `MACROEXPAND-TIME-IF` expands into an `IF` form,
-* `MACROEXPAND-TIME-WHEN` expands into a `WHEN` form,
-* `MACROEXPAND-TIME-UNLESS` expands into an `UNLESS` form.
+It is possible to use the variable `*BRANCH-BYPASS*` for bypassing macroexpand-time branching; this is useful e.g. when trying to read the macroexpansions or when debugging. If that variable is set to true, the behavior of the macroexpander is modified:
+* `WITH-BRANCHING` expands into a `PROGN` form,
+* `BRANCH-IF` expands into an `IF` form,
+* `BRANCH-WHEN` expands into a `WHEN` form,
+* `BRANCH-UNLESS` expands into an `UNLESS` form.
 
 ## Exceptional situations
 
-Trying to use `MACROEXPAND-TIME-IF`, `MACROEXPAND-TIME-WHEN`, or `MACROEXPAND-TIME-UNLESS` outside the lexical environment established by `WITH-MACROEXPAND-TIME-BRANCHES` will signal a `PROGRAM-ERROR`.
+Trying to use `BRANCH-IF`, `BRANCH-WHEN`, or `BRANCH-UNLESS` outside the lexical environment established by `WITH-BRANCHES` will signal a `PROGRAM-ERROR`.
 
-Trying to use a branch name `MACROEXPAND-TIME-IF`, `MACROEXPAND-TIME-WHEN`, or `MACROEXPAND-TIME-UNLESS` that wasn't declared in `WITH-MACROEXPAND-TIME-BRANCHES` will signal a `PROGRAM-ERROR`.
+Trying to use a branch name `BRANCH-IF`, `BRANCH-WHEN`, or `BRANCH-UNLESS` that wasn't declared in `WITH-BRANCHES` will signal a `PROGRAM-ERROR`.
 
 ## License
 

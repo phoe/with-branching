@@ -1,44 +1,44 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;; WITH-MACROEXPAND-TIME-BRANCHING
+;;;; WITH-BRANCHING
 ;;;; © Michał "phoe" Herda 2022
 ;;;; License: MIT
 
-(defpackage #:with-macroexpand-time-branching
+(defpackage #:with-branching
   (:use #:cl)
   (:local-nicknames (#:a #:alexandria)
                     (#:i #:trivial-indent))
-  (:export #:*macroexpand-time-branch-bypass*
-           #:with-macroexpand-time-branching
-           #:macroexpand-time-if
-           #:macroexpand-time-when
-           #:macroexpand-time-unless))
+  (:export #:*branch-bypass*
+           #:with-branching
+           #:branch-if
+           #:branch-when
+           #:branch-unless))
 
-(in-package #:with-macroexpand-time-branching)
+(in-package #:with-branching)
 
-(i:define-indentation macroexpand-time-if (4 4 4))
-(i:define-indentation macroexpand-time-when (as when))
-(i:define-indentation macroexpand-time-unless (as unless))
+(i:define-indentation branch-if (4 4 4))
+(i:define-indentation branch-when (as when))
+(i:define-indentation branch-unless (as unless))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Implementation
 
-(defvar *macroexpand-time-branch-bypass* nil)
+(defvar *branch-bypass* nil)
 
 (define-symbol-macro %in-branching% nil)
 
 (define-symbol-macro %all-branches% ())
 
-(defmacro with-macroexpand-time-branching ((&rest branches) &body body
+(defmacro with-branching ((&rest branches) &body body
                                            &environment env)
-  (cond (*macroexpand-time-branch-bypass*
+  (cond (*branch-bypass*
          `(progn ,@body))
         (t (let ((all-branches (macroexpand-1 '%all-branches% env)))
              `(symbol-macrolet ((%in-branching% t)
                                 (%all-branches% (,@branches ,@all-branches))
                                 (%true-branches% ()))
-                (%with-macroexpand-time-branching ,branches ,@body))))))
+                (%with-branching ,branches ,@body))))))
 
-(defmacro %with-macroexpand-time-branching ((&rest branches) &body body
+(defmacro %with-branching ((&rest branches) &body body
                                             &environment env)
   (cond ((not (null branches))
          (destructuring-bind (branch . other-branches) branches
@@ -46,9 +46,9 @@
              `(if ,branch
                   (symbol-macrolet
                       ((%true-branches% (,branch . ,true-branches)))
-                    (%with-macroexpand-time-branching (,@other-branches)
+                    (%with-branching (,@other-branches)
                       ,@body))
-                  (%with-macroexpand-time-branching (,@other-branches)
+                  (%with-branching (,@other-branches)
                     ,@body)))))
         ((= 0 (length body))
          `(progn))
@@ -56,36 +56,36 @@
          (car body))
         (t `(progn ,@body))))
 
-(defun macroexpand-time-conditional-error (name)
+(defun conditional-error (name)
   `(a:simple-program-error
     "~A must be used inside the lexical scope established by ~
-     WITH-MACROEXPAND-TIME-BRANCHING."
+     WITH-BRANCHING."
     ',name))
 
-(defun macroexpand-time-missing-branch (name)
+(defun missing-branch (name)
   `(a:simple-program-error
     "The macroexpand-time branch ~S was not defined in any encloding
-     WITH-MACROEXPAND-TIME-BRANCHING form."
+     WITH-BRANCHING form."
     ',name))
 
-(defmacro macroexpand-time-if (branch then &optional else &environment env)
-  (cond (*macroexpand-time-branch-bypass*
+(defmacro branch-if (branch then &optional else &environment env)
+  (cond (*branch-bypass*
          `(if ,branch ,then ,else))
         ((not (member branch (macroexpand-1 '%all-branches% env)))
-         (macroexpand-time-missing-branch branch))
+         (missing-branch branch))
         ((not (macroexpand-1 '%in-branching% env))
-         (macroexpand-time-conditional-error 'macroexpand-time-if))
+         (conditional-error 'if))
         ((member branch (macroexpand-1 '%true-branches% env))
          then)
         (t (or else `(progn)))))
 
-(defmacro macroexpand-time-when (branch &body body &environment env)
-  (cond (*macroexpand-time-branch-bypass*
+(defmacro branch-when (branch &body body &environment env)
+  (cond (*branch-bypass*
          `(when ,branch ,@body))
         ((not (member branch (macroexpand-1 '%all-branches% env)))
-         (macroexpand-time-missing-branch branch))
+         (missing-branch branch))
         ((not (macroexpand-1 '%in-branching% env))
-         (macroexpand-time-conditional-error 'macroexpand-time-when))
+         (conditional-error 'when))
         ((not (member branch (macroexpand-1 '%true-branches% env)))
          `(progn))
         ((= 0 (length body))
@@ -94,13 +94,13 @@
          (car body))
         (t `(progn ,@body))))
 
-(defmacro macroexpand-time-unless (branch &body body &environment env)
-  (cond (*macroexpand-time-branch-bypass*
+(defmacro branch-unless (branch &body body &environment env)
+  (cond (*branch-bypass*
          `(unless ,branch ,@body))
         ((not (member branch (macroexpand-1 '%all-branches% env)))
-         (macroexpand-time-missing-branch branch))
+         (missing-branch branch))
         ((not (macroexpand-1 '%in-branching% env))
-         (macroexpand-time-conditional-error 'macroexpand-time-unless))
+         (conditional-error 'unless))
         ((member branch (macroexpand-1 '%true-branches% env))
          `(progn))
         ((= 0 (length body))
@@ -113,42 +113,42 @@
 ;;;; Documentation
 
 (setf
- (documentation '*macroexpand-time-branch-bypass* 'variable)
+ (documentation '*branch-bypass* 'variable)
  "Bypasses macroexpand-time branching. The bypass inhibits all macroexpand-time
 branching and instead defers all checks in expanded code to runtime in the
 following manner:
 \
-* WITH-MACROEXPAND-TIME-BRANCHING -> PROGN
-* MACROEXPAND-TIME-IF -> IF
-* MACROEXPAND-TIME-WHEN -> WHEN
-* MACROEXPAND-TIME-UNLESS -> UNLESS"
- (documentation 'with-macroexpand-time-branching 'function)
+* WITH-BRANCHING -> PROGN
+* BRANCH-IF -> IF
+* BRANCH-WHEN -> WHEN
+* BRANCH-UNLESS -> UNLESS"
+ (documentation 'with-branching 'function)
  "Establishes a lexical environment in which it is possible to use
 macroexpand-time branching. Within the lexical scope of
-WITH-MACROEXPAND-TIME-BRANCHING, it is possible to use MACROEXPAND-TIME-IF,
-MACROEXPAND-TIME-WHEN, and MACROEXPAND-TIME-UNLESS to conditionalize whether
+WITH-BRANCHING, it is possible to use BRANCH-IF,
+BRANCH-WHEN, and BRANCH-UNLESS to conditionalize whether
 some forms are included at compilation time.
 \
 The first argument must be a list of symbols which name variables. This macro
 will expand into a series of conditionals"
- (documentation 'macroexpand-time-if 'function)
+ (documentation 'branch-if 'function)
  "Chooses between the forms to include based on whether a macroexpand-time
 branch is true. The first argument must be a symbol naming a branch in the
-lexically enclosing WITH-MACROEXPAND-TIME-BRANCHING form.
+lexically enclosing WITH-BRANCHING form.
 \
 It is an error to use this macro outside the lexical environment established by
-WITH-MACROEXPAND-TIME-BRANCHES."
- (documentation 'macroexpand-time-when 'function)
+WITH-BRANCHES."
+ (documentation 'branch-when 'function)
  "Includes some forms based on whether a macroexpand-time branch is true. The
 first argument must be a symbol naming a branch in the lexically enclosing
-WITH-MACROEXPAND-TIME-BRANCHING form.
+WITH-BRANCHING form.
 \
 It is an error to use this macro outside the lexical environment established by
-WITH-MACROEXPAND-TIME-BRANCHES."
- (documentation 'macroexpand-time-unless 'function)
+WITH-BRANCHES."
+ (documentation 'branch-unless 'function)
  "Includes some forms based on whether a macroexpand-time branch is false. The
 first argument must be a symbol naming a branch in the lexically enclosing
-WITH-MACROEXPAND-TIME-BRANCHING form.
+WITH-BRANCHING form.
 \
 It is an error to use this macro outside the lexical environment established by
-WITH-MACROEXPAND-TIME-BRANCHES.")
+WITH-BRANCHES.")
