@@ -111,7 +111,7 @@ The total number of combinations for `n` boolean flags is `2^n`, making it hard 
 
 This code gives us the clarity of runtime-checked version and the performance of a checked version. A total of eight versions of the body (and therefore, eight possible `LAMBDA` forms) are generated. At runtime, only one of them is selected, based on the boolean values of the three flags we provided.
 
-Three conditional operators are provided - `IF`, `WHEN`, and `UNLESS`, mimicking the syntax of, respectively, `BRANCH-IF`, `BRANCH-WHEN`, and `BRANCH-UNLESS`.
+Three conditional operators are provided - `BRANCH-IF`, `BRANCH-WHEN`, and `BRANCH-UNLESS`, mimicking the syntax of, respectively, `IF`, `WHEN`, and `UNLESS`.
 
 ## Bypassing the macroexpand-time branching
 
