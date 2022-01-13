@@ -127,6 +127,14 @@ Trying to use `BRANCH-IF`, `BRANCH-WHEN`, or `BRANCH-UNLESS` outside the lexical
 
 Trying to use a branch name `BRANCH-IF`, `BRANCH-WHEN`, or `BRANCH-UNLESS` that wasn't declared in `WITH-BRANCHES` will signal a `PROGRAM-ERROR`.
 
+## Testing
+
+`(asdf:test-system :with-branching)`
+
+## Shorter symbol names
+
+If you want to use package-local nicknames for the conditional operators, such as `W:IF`, `W:WHEN`, or `W:UNLESS`, while accepting the risk that people reading your code may mistake them for standard Common Lisp operators, `(ASDF:LOAD-SYSTEM :WITH-BRANCHING/DANGEROUS)` and depend on the symbols from the `WITH-BRANCHING/DANGEROUS` package instead.
+
 ## License
 
 MIT
