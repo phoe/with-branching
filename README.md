@@ -4,6 +4,14 @@ This is an implementation of macroexpand-time branching in portable Common Lisp.
 
 The main use case is to avoid closing over variables for performance.
 
+## Find it in Serapeum!
+
+This library [is now also available](https://github.com/ruricolist/serapeum/pull/105)  as a part of [Serapeum](https://github.com/ruricolist/serapeum/) with a few name differences:
+* `WITH-BRANCHING` → `WITH-BOOLEAN`
+* `BRANCH-IF` → `BOOLEAN-IF`
+* `BRANCH-WHEN` → `BOOLEAN-WHEN`
+* `BRANCH-UNLESS` → `BOOLEAN-UNLESS`
+
 ## Manual
 
 Let's consider the following function:
@@ -134,33 +142,6 @@ Trying to use a branch name `BRANCH-IF`, `BRANCH-WHEN`, or `BRANCH-UNLESS` that 
 ## Shorter symbol names
 
 If you want to use package-local nicknames for the conditional operators, such as `W:IF`, `W:WHEN`, or `W:UNLESS`, while accepting the risk that people reading your code may mistake them for standard Common Lisp operators, `(ASDF:LOAD-SYSTEM :WITH-BRANCHING/DANGEROUS)` and depend on the symbols from the `WITH-BRANCHING/DANGEROUS` package instead.
-
-## Why not Serapeum's `WITH-BOOLEAN`?
-
-Well, [maybe this won't be a problem in the future](https://github.com/ruricolist/serapeum/issues/103), but for now you should know the following:
-
-`SERAPEUM:WITH-BOOLEAN` uses the same underlying technique as this library.
-
-The difference between the two is that with this library e.g. SBCL is going to *not* emit warnings about unreachable code. These are generally useful, but misleading in this particular and concrete case. See e.g. this example:
-
-```lisp
-(defun foo (x)
-  (serapeum:with-boolean (x)
-    (when x (print "haha"))))
-
-; processing (DEFUN FOO ...)
-
-; file: /tmp/slimeceiis1
-; in: DEFUN FOO
-;     (PRINT "haha")
-; 
-; note: deleting unreachable code
-; 
-; compilation unit finished
-;   printed 1 note
-```
-
-The whole point of `BRANCH-{IF,WHEN,UNLESS}` available here is to avoid installing some forms in the compiled output altogether, so the compiler has nothing to emit "deleting unreachable code" compiler notes about. To the best of my ability, this isn't possible to achieve with just a single wrapping form without utilizing a full code walker to manually prune unreachable branches *or* disabling that particular SBCL compiler note.
 
 ## License
 
