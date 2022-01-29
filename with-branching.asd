@@ -25,8 +25,8 @@
 (asdf:defsystem #:with-branching/test
   :description "Tests for WITH-BRANCHING"
   :author "Michał \"phoe\" Herda <phoe@disroot.org>"
-  :license  "MIT"
+  :license  "GPLv3"
   :version "0.0.1"
   :serial t
-  :depends-on (#:agnostic-lizard)
+  :depends-on (#:with-branching #:agnostic-lizard)
   :components ((:file "with-branching-test")))
