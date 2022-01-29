@@ -20,7 +20,7 @@
   :version "0.0.1"
   :serial t
   :depends-on (#:with-branching)
-  :components ((:file "dangerous.lisp")))
+  :components ((:file "dangerous")))
 
 (asdf:defsystem #:with-branching/test
   :description "Tests for WITH-BRANCHING"
